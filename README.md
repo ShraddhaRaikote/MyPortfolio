@@ -96,7 +96,7 @@ If you skip the seed script, create these document types in Studio:
 
 | Type | Notes |
 |------|-------|
-| **Site Settings** | One document: meta title/description, email, social URLs |
+| **Site Settings** | One document: meta title/description, email, social URLs, page labels |
 | **Profile** | One document: name, title, bios, location, years of experience |
 | **Project** | One per project; set **slug** (used in URLs), tech stack, featured flag, sort order |
 | **Skill** | One per skill; category: `frontend`, `backend`, `tools`, or `other` |

@@ -18,9 +18,11 @@ import { ScrollRevealDirective } from '../../shared/directives/scroll-reveal.dir
         <div class="col-12 col-lg-8 col-xl-7">
           <header appScrollReveal class="page-header text-center mb-5">
             <p class="section-eyebrow mb-2">Contact</p>
-            <h1 class="font-display fw-bold display-5 mb-3">
-              <span class="text-gradient">Let's connect</span>
-            </h1>
+            @if (settings$ | async; as settings) {
+              <h1 class="font-display fw-bold display-5 mb-3">
+                <span class="text-gradient">{{ settings.contactPageTitle }}</span>
+              </h1>
+            }
             <p class="text-secondary mb-0">Drop a message — I typically reply within 24 hours.</p>
           </header>
 
@@ -52,6 +54,7 @@ import { ScrollRevealDirective } from '../../shared/directives/scroll-reveal.dir
                 <div class="col-12">
                   <div class="field-group">
                     <select id="subject" formControlName="subject" class="field-input" style="padding-top: 1.75rem">
+                      <option value="" disabled>Select a topic</option>
                       <option value="project">Project inquiry</option>
                       <option value="job">Job opportunity</option>
                       <option value="collab">Collaboration</option>
@@ -59,6 +62,9 @@ import { ScrollRevealDirective } from '../../shared/directives/scroll-reveal.dir
                     </select>
                     <label for="subject" class="field-label" style="top: 0.5rem; font-size: 0.625rem; text-transform: uppercase; letter-spacing: 0.08em; color: #818cf8">Topic</label>
                     <span class="field-icon material-symbols-outlined">topic</span>
+                    @if (form.controls.subject.touched && form.controls.subject.invalid) {
+                      <p class="text-danger small mt-2 mb-0">Please select a topic.</p>
+                    }
                   </div>
                 </div>
 
@@ -121,7 +127,7 @@ export class ContactComponent {
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    subject: ['project'],
+    subject: ['', [Validators.required]],
     message: ['', [Validators.required, Validators.minLength(10)]],
   });
 
@@ -138,15 +144,23 @@ export class ContactComponent {
       .subscribe({
         next: (res) => {
           this.submitting.set(false);
-          this.snackBar.open(res.message, 'Close', {
+          const snackMessage = res.success ? '✓ Message sent successfully!' : res.message;
+          this.snackBar.open(snackMessage, '×', {
             duration: 5000,
             panelClass: res.success ? 'snack-success' : 'snack-error',
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
           });
-          if (res.success) this.form.reset({ subject: 'project' });
+          if (res.success) this.form.reset({ name: '', email: '', subject: '', message: '' });
         },
         error: () => {
           this.submitting.set(false);
-          this.snackBar.open('Something went wrong. Please try again.', 'Close', { duration: 5000 });
+          this.snackBar.open('Something went wrong. Please try again.', '×', {
+            duration: 5000,
+            panelClass: 'snack-error',
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+          });
         },
       });
   }

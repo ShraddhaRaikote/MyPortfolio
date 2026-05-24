@@ -51,6 +51,14 @@ For each role:
 - Contact email
 - Twitter/X URL (optional)
 
+## Page Labels
+
+- Home welcome text
+- Home story eyebrow
+- Home story title
+- Projects page title
+- Contact page title
+
 ## Services (when ready)
 
 - **Sanity project ID** — from [sanity.io/manage](https://sanity.io/manage) after creating a project

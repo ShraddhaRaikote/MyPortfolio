@@ -7,5 +7,5 @@ export const environment = {
     useCdn: true,
   },
   useSanity: true,
-  web3formsAccessKey: '',
+  web3formsAccessKey: 'ad0f781b-ad22-4d1e-b143-442ae9cbf230',
 };

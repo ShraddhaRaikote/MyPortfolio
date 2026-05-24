@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { createClient, SanityClient } from '@sanity/client';
-import { Observable, from, map, of, catchError } from 'rxjs';
+import { Observable, concat, from, map, of, catchError, shareReplay } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
@@ -31,33 +31,62 @@ export class ContentService {
       })
     : null;
 
+  private readonly siteSettings$ = this.fetchOrMock<SiteSettings>(
+    `*[_type == "siteSettings"][0]{
+      metaTitle, metaDescription, contactEmail, githubUrl, linkedinUrl, twitterUrl,
+      homeWelcomeText, homeStoryEyebrow, homeStoryTitle, projectsPageTitle, contactPageTitle
+    }`,
+    MOCK_SITE_SETTINGS,
+  ).pipe(
+    map((settings) => ({ ...MOCK_SITE_SETTINGS, ...settings })),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  private readonly profile$ = this.fetchOrMock<Profile>(
+    `*[_type == "profile"][0]{
+      name, title, tagline, shortBio, fullBio,
+      "avatar": avatar.asset->url, location, yearsExp, openToWork
+    }`,
+    MOCK_PROFILE,
+  ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+  private readonly projects$ = this.fetchOrMock<Project[]>(
+    `*[_type == "project"] | order(order asc) {
+      "id": _id, title, "slug": slug.current, summary, body,
+      "image": image.asset->url, tech, liveUrl, githubUrl, featured, order
+    }`,
+    MOCK_PROJECTS,
+  ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+  private readonly skills$ = this.fetchOrMock<Skill[]>(
+    `*[_type == "skill"] | order(name asc) { name, category }`,
+    MOCK_SKILLS,
+  ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+  private readonly experience$ = this.fetchOrMock<Experience[]>(
+    `*[_type == "experience"] | order(order asc) {
+      "id": _id, company, role, startDate, endDate, description, order
+    }`,
+    MOCK_EXPERIENCE,
+  ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+  private readonly interests$ = this.fetchOrMock<Interest[]>(
+    `*[_type == "interest"] | order(order asc) {
+      "id": _id, title, description, icon
+    }`,
+    MOCK_INTERESTS,
+  ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
   getSiteSettings(): Observable<SiteSettings> {
-    return this.fetchOrMock<SiteSettings>(
-      `*[_type == "siteSettings"][0]{
-        metaTitle, metaDescription, contactEmail, githubUrl, linkedinUrl, twitterUrl
-      }`,
-      MOCK_SITE_SETTINGS,
-    );
+    return this.siteSettings$;
   }
 
   getProfile(): Observable<Profile> {
-    return this.fetchOrMock<Profile>(
-      `*[_type == "profile"][0]{
-        name, title, tagline, shortBio, fullBio,
-        "avatar": avatar.asset->url, location, yearsExp, openToWork
-      }`,
-      MOCK_PROFILE,
-    );
+    return this.profile$;
   }
 
   getProjects(): Observable<Project[]> {
-    return this.fetchOrMock<Project[]>(
-      `*[_type == "project"] | order(order asc) {
-        "id": _id, title, "slug": slug.current, summary, body,
-        "image": image.asset->url, tech, liveUrl, githubUrl, featured, order
-      }`,
-      MOCK_PROJECTS,
-    );
+    return this.projects$;
   }
 
   getFeaturedProjects(): Observable<Project[]> {
@@ -67,44 +96,19 @@ export class ContentService {
   }
 
   getProjectBySlug(slug: string): Observable<Project | undefined> {
-    if (this.client) {
-      return from(
-        this.client.fetch<Project>(
-          `*[_type == "project" && slug.current == $slug][0] {
-            "id": _id, title, "slug": slug.current, summary, body,
-            "image": image.asset->url, tech, liveUrl, githubUrl, featured, order
-          }`,
-          { slug },
-        ),
-      ).pipe(catchError(() => of(undefined)));
-    }
-
-    return of(MOCK_PROJECTS.find((p) => p.slug === slug));
+    return this.getProjects().pipe(map((projects) => projects.find((p) => p.slug === slug)));
   }
 
   getSkills(): Observable<Skill[]> {
-    return this.fetchOrMock<Skill[]>(
-      `*[_type == "skill"] | order(name asc) { name, category }`,
-      MOCK_SKILLS,
-    );
+    return this.skills$;
   }
 
   getExperience(): Observable<Experience[]> {
-    return this.fetchOrMock<Experience[]>(
-      `*[_type == "experience"] | order(order asc) {
-        "id": _id, company, role, startDate, endDate, description, order
-      }`,
-      MOCK_EXPERIENCE,
-    );
+    return this.experience$;
   }
 
   getInterests(): Observable<Interest[]> {
-    return this.fetchOrMock<Interest[]>(
-      `*[_type == "interest"] | order(order asc) {
-        "id": _id, title, description, icon
-      }`,
-      MOCK_INTERESTS,
-    );
+    return this.interests$;
   }
 
   private fetchOrMock<T>(query: string, mock: T): Observable<T> {
@@ -112,9 +116,11 @@ export class ContentService {
       return of(mock);
     }
 
-    return from(this.client.fetch<T>(query)).pipe(
+    const remote$ = from(this.client.fetch<T>(query)).pipe(
       map((result) => (result ? result : mock)),
       catchError(() => of(mock)),
     );
+
+    return concat(of(mock), remote$);
   }
 }

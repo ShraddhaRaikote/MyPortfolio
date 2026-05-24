@@ -18,9 +18,11 @@ import { Project } from '../../core/models/portfolio.models';
         <div class="col-12 col-lg-10 text-center">
           <header appScrollReveal class="page-header">
             <p class="section-eyebrow mb-2">Work</p>
-            <h1 class="font-display fw-bold display-5 mb-3">
-              <span class="text-gradient">My Projects</span>
-            </h1>
+            @if (settings$ | async; as settings) {
+              <h1 class="font-display fw-bold display-5 mb-3">
+                <span class="text-gradient">{{ settings.projectsPageTitle }}</span>
+              </h1>
+            }
             <p class="text-secondary mx-auto mb-0" style="max-width: 32rem">
               Apps, tools, and experiments — each built with care for design and performance.
             </p>
@@ -53,6 +55,7 @@ import { Project } from '../../core/models/portfolio.models';
 })
 export class ProjectsComponent {
   private readonly content = inject(ContentService);
+  readonly settings$ = this.content.getSiteSettings();
   readonly projects$ = this.content.getProjects();
   readonly activeFilter = signal('all');
 

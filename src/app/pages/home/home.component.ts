@@ -19,7 +19,9 @@ gsap.registerPlugin(ScrollTrigger);
         <div class="row justify-content-center w-100 position-relative" style="z-index: 1">
           <div #heroContent class="col-12 col-lg-10 col-xl-9">
             <h1 class="hero-welcome font-display fw-bold hero-glow mb-0" style="font-size: clamp(2.5rem, 8vw, 5rem); line-height: 1.1">
-              <span class="text-gradient d-block">Welcome</span>
+              @if (settings$ | async; as settings) {
+                <span class="text-gradient d-block">{{ settings.homeWelcomeText }}</span>
+              }
             </h1>
 
             @if (profile$ | async; as profile) {
@@ -49,8 +51,10 @@ gsap.registerPlugin(ScrollTrigger);
           <div class="col-12 col-lg-10 col-xl-9">
             <div appScrollReveal class="glass-panel text-center text-lg-start">
               @if (profile$ | async; as profile) {
-                <span class="section-eyebrow">My Story</span>
-                <h2 class="mt-3 font-display fw-bold text-light">Who I am</h2>
+                @if (settings$ | async; as settings) {
+                  <span class="section-eyebrow">{{ settings.homeStoryEyebrow }}</span>
+                  <h2 class="mt-3 font-display fw-bold text-light">{{ settings.homeStoryTitle }}</h2>
+                }
                 @for (paragraph of profile.fullBio.split('\n\n'); track paragraph) {
                   <p class="mt-4 text-secondary mb-0" style="line-height: 1.8">{{ paragraph }}</p>
                 }
@@ -147,6 +151,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private readonly heroContent = viewChild<ElementRef>('heroContent');
 
   readonly profile$ = this.content.getProfile();
+  readonly settings$ = this.content.getSiteSettings();
   readonly skills$ = this.content.getSkills();
   readonly interests$ = this.content.getInterests();
 

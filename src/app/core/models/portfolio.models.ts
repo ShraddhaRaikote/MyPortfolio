@@ -48,6 +48,11 @@ export interface SiteSettings {
   githubUrl: string;
   linkedinUrl: string;
   twitterUrl?: string;
+  homeWelcomeText?: string;
+  homeStoryEyebrow?: string;
+  homeStoryTitle?: string;
+  projectsPageTitle?: string;
+  contactPageTitle?: string;
 }
 
 export interface ContactFormPayload {

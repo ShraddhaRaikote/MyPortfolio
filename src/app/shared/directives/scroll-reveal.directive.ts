@@ -67,7 +67,11 @@ export class ScrollRevealDirective implements OnDestroy {
         duration: this.duration(),
         delay: this.delay(),
         ease: 'power3.out',
-        onComplete: () => element.classList.add('scroll-revealed'),
+        onComplete: () => {
+          element.classList.add('scroll-revealed');
+          this.scrollTrigger?.kill();
+          this.scrollTrigger = undefined;
+        },
       });
     };
 
@@ -78,8 +82,7 @@ export class ScrollRevealDirective implements OnDestroy {
       start: 'top 90%',
       onEnter: reveal,
       onEnterBack: reveal,
-      onLeave: reset,
-      onLeaveBack: reset,
+      once: true,
     });
 
     const rect = element.getBoundingClientRect();

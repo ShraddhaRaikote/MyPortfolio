@@ -14,6 +14,11 @@ export const MOCK_SITE_SETTINGS: SiteSettings = {
   contactEmail: 'shraddharaikote123@gmail.com',
   githubUrl: 'https://github.com/ShraddhaRaikote',
   linkedinUrl: 'https://linkedin.com/in/shraddha-raikote',
+  homeWelcomeText: 'Welcome',
+  homeStoryEyebrow: 'My Story',
+  homeStoryTitle: 'Who I am',
+  projectsPageTitle: 'My Projects',
+  contactPageTitle: "Let's connect",
 };
 
 export const MOCK_PROFILE: Profile = {
