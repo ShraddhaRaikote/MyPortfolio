@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background-color: transparent;
+  color: #e2e8f0;
+}

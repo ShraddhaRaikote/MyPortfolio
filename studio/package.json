@@ -1,0 +1,19 @@
+{
+  "name": "portfolio-studio",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Sanity Studio for Portfolio CMS",
+  "scripts": {
+    "dev": "sanity dev",
+    "start": "sanity start",
+    "build": "sanity build",
+    "deploy": "sanity deploy",
+    "seed": "node scripts/seed.mjs"
+  },
+  "dependencies": {
+    "@sanity/client": "^7.22.0",
+    "@sanity/vision": "^3.68.0",
+    "sanity": "^3.68.0",
+    "styled-components": "^6.1.13"
+  }
+}
