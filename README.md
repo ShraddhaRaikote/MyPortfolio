@@ -41,14 +41,56 @@ See [CONTENT_QUESTIONNAIRE.md](./CONTENT_QUESTIONNAIRE.md) for what to personali
 
 ## Sanity CMS Setup (project `cq64slan`)
 
-### 1. CORS origins (required)
+### 1. CORS origins (you likely have this already)
 
-In [Sanity Manage](https://sanity.io/manage) → **API** → **CORS origins**, add:
+In [Sanity Manage](https://sanity.io/manage) → project **cq64slan** → **API** → **CORS origins**:
 
-- `http://localhost:4200` (local Angular dev)
-- Your Netlify URL, e.g. `https://your-site.netlify.app` (production site)
+| Origin | Allow credentials |
+|--------|-------------------|
+| `http://localhost:3333` | **Yes** |
+| `http://127.0.0.1:3333` | **Yes** |
+| `http://localhost:4200` | No (portfolio site) |
+| Your Netlify URL | No |
 
-Allow credentials is **not** required for read-only public dataset access.
+### 1b. Yellow toast: “outdated HTTP protocol” (slow Studio / fetch fails)
+
+If Studio shows **“You've got your brakes on”** and the main pane stays blank, your **network** is forcing **HTTP/1.1** to `*.sanity.io`. Sanity Studio needs **HTTP/2 or HTTP/3** — this is not a project config bug.
+
+**Quick checks:**
+
+1. **Clear a false alarm** — on `localhost:3333`, DevTools → Console:
+   ```js
+   localStorage.removeItem('_sanity_debugProtocol'); location.reload();
+   ```
+2. Turn off **VPN**, reload Studio.
+3. Warning on **hotspot too** → usually **laptop antivirus HTTPS scanning** (not Wi‑Fi). Disable “HTTPS scanning” / web protection, then retry.
+4. Chrome **F12 → Network** → `cq64slan.api.sanity.io` → **Protocol** should be `h2` or `h3`.
+
+Official guide: [HTTP/1 performance issues](https://www.sanity.io/docs/help/http1-performance-issues)
+
+**Seed** (`unable to get local issuer certificate`): use a **real** token in `studio/.env` (starts with `sk…`, not placeholder text). Then in PowerShell:
+
+```powershell
+cd studio
+npm install
+$env:NODE_USE_SYSTEM_CA="1"
+npm run seed
+```
+
+**Work around slow Studio:** seed from terminal (Node, not the browser):
+
+```bash
+cd studio
+# Add SANITY_API_TOKEN to .env first (Manage → API → Tokens)
+npm run seed
+```
+
+Test API from terminal:
+
+```bash
+cd studio
+npm run verify
+```
 
 ### 2. Run Sanity Studio locally
 
@@ -70,7 +112,13 @@ Start the Studio:
 npm run dev
 ```
 
-Open http://localhost:3333 and sign in with your Sanity account.
+**Open http://cq64slan.localhost:3333** (not `localhost:3333`). This project proxies API calls through Node to avoid the HTTP/1.1 / “Trying to connect” issue on Windows.
+
+Add CORS origin in Manage → API: `http://cq64slan.localhost:3333` with **credentials allowed**.
+
+Helper script: `npm run dev:fix` (from `studio/`).
+
+Sign in with your Sanity account when prompted.
 
 ### 3. Seed placeholder content (optional)
 

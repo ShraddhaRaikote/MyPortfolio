@@ -1,0 +1,12 @@
+{
+  "_id": "profile",
+  "_type": "profile",
+  "name": "Shraddha Raikote",
+  "title": "Full Stack Developer",
+  "tagline": "Building elegant, performant web experiences",
+  "shortBio": "I craft modern web applications with Angular and TypeScript, focusing on clean architecture, accessibility, and polished user interfaces.",
+  "fullBio": "I am a full stack developer passionate about building products that feel fast, intuitive, and thoughtfully designed. My work spans enterprise Angular applications, RESTful APIs, and cloud-ready deployments.\n\nI enjoy solving complex UI problems, improving developer experience, and turning ideas into reliable software.",
+  "location": "Remote",
+  "yearsExp": 5,
+  "openToWork": true
+}

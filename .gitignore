@@ -38,6 +38,14 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+studio/.sanity/
+studio/dist/
+*-dev.*.log
+
+# Secrets — never commit API tokens
+.env
+.env.local
+studio/.env
 
 # System files
 .DS_Store

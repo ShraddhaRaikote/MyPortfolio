@@ -32,12 +32,36 @@ function loadEnvFile() {
 
 loadEnvFile();
 
+/** Windows + antivirus HTTPS scanning often breaks Node TLS; use OS cert store. */
+async function configureTls() {
+  if (process.platform !== 'win32') return;
+  process.env.NODE_USE_SYSTEM_CA ??= '1';
+  try {
+    const winCa = await import('win-ca');
+    const inject = winCa.default?.inject ?? winCa.inject;
+    if (typeof inject === 'function') inject('+');
+  } catch {
+    // win-ca optional; NODE_USE_SYSTEM_CA still helps on Node 21+
+  }
+}
+
+await configureTls();
+
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID || 'cq64slan';
 const dataset = process.env.SANITY_STUDIO_DATASET || 'production';
-const token = process.env.SANITY_API_TOKEN;
+const token = process.env.SANITY_API_TOKEN?.trim();
+
+const PLACEHOLDER = /your_write_token|paste.*token|example/i;
 
 if (!token) {
-  console.error('Missing SANITY_API_TOKEN. Add a write token to studio/.env and retry.');
+  console.error('Missing SANITY_API_TOKEN in studio/.env');
+  console.error('Create one: sanity.io/manage → cq64slan → API → Tokens → Editor');
+  process.exit(1);
+}
+
+if (PLACEHOLDER.test(token) || token.length < 40) {
+  console.error('SANITY_API_TOKEN still looks like the README placeholder.');
+  console.error('Copy the real token from Sanity Manage (starts with sk…) into studio/.env');
   process.exit(1);
 }
 
@@ -235,6 +259,21 @@ async function seed() {
 }
 
 seed().catch((err) => {
-  console.error('Seed failed:', err.message);
+  const msg = err.message ?? String(err);
+  console.error('Seed failed:', msg);
+
+  if (/issuer certificate|UNABLE_TO_VERIFY|certificate/i.test(msg)) {
+    console.error('\n--- SSL fix (Windows) ---');
+    console.error('Antivirus HTTPS scanning often causes this. Try in PowerShell:');
+    console.error('  $env:NODE_USE_SYSTEM_CA="1"');
+    console.error('  npm run seed');
+    console.error('Or temporarily disable HTTPS scanning in your antivirus, then retry.');
+  }
+
+  if (/401|403|Unauthorized|permission/i.test(msg)) {
+    console.error('\n--- Token fix ---');
+    console.error('Use a valid Editor token in studio/.env (not the placeholder text).');
+  }
+
   process.exit(1);
 });
